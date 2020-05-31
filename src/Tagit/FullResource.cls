@@ -14,24 +14,26 @@ Property tags As list Of Tagit.Tag;
 
 // Property tags As list Of %Library.String;
 
-Method LoadFullResource(resourceId As %Integer) As %Status
+Method LoadFullResource(resid As %Integer) As %Status
 {
     try {
-        do ..LoadResource(resourceId)
+        do ..LoadResource(resid)
 
+        set mq = "SELECT tagid FROM Tagit.TagMap WHERE resourceid = ?"
         set sqlst = ##class(%SQL.Statement).%New()
-        do sqlst.prepare("SELECT tagid FROM Tagit.TagMap WHERE resourceid = :resourceId")
-        set result = sqlst.execute()
-        while result.%Next(.sc)
-        {
-            write !,"HERE"
-            set tagid = result.%Get("tagid")
-            write !,"tagid: "_tagid
-            do ..LoadTag(tagid)
-        }
+        set qStatus = sqlst.%Prepare(.mq)
+            if qStatus'=1 {WRITE "%Prepare failed:" DO $System.Status.DisplayError(qStatus) QUIT}
+
+        set result = sqlst.%Execute(resid)
         if result.SQLCODE<0 {
-            write "SQLCODE: "_result.SQLCODE
+            write !,"SQLCODE: "_result.SQLCODE
             throw ##class(%Exception.SQL).CreateFromSQLCODE(result.%SQLCODE, result.%Message)
+        }
+
+        while result.%Next()
+        {
+            set tagid = result.%Get("tagid")
+            do ..LoadTag(tagid)
         }
     } catch (oException) {
         write !,"EXCEPTION: "_oException
@@ -52,7 +54,6 @@ Method LoadTag(tagid As %Integer) As %Status
 {
     set tag = ##class(Tagit.Tag).%OpenId(tagid)
     do ..tags.Insert(tag)
-    write !,"tag count: "_..tags.Count()
 }
 
 }
