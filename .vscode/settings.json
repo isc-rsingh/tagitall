@@ -1,0 +1,12 @@
+{
+    "objectscript.conn": {
+      "active": true,
+      "label": "LOCALDOCKER",
+      "host": "127.0.0.1",
+      "port": 5273,
+      "username": "_SYSTEM",
+      "ns": "USER",
+      "https": false
+    },
+    "objectscript.conn.active": true,
+  }
